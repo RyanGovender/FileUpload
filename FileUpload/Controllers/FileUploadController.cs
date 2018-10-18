@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using FileUpload.Models;
+using FileUpload.Business;
 namespace FileUpload.Controllers
 {
     public class FileUploadController : Controller
@@ -21,26 +22,15 @@ namespace FileUpload.Controllers
             return View(model);
         }
         [HttpPost]
-        public ActionResult FileUploadProcess(FileUploadVm model)
+        public ActionResult FileUploadProcess(FileUploadVm model,FileUploadBusiness fileUploadBusiness)
         {
-            FileUploadModel fileUpload = new FileUploadModel();
-            byte[] uploadFile = new byte[model.File.InputStream.Length];
-            model.File.InputStream.Read(uploadFile, 0, uploadFile.Length);
-            fileUpload.FileName = model.File.FileName;
-            fileUpload.File = uploadFile;
-            db.fileUploadModel.Add(fileUpload);
-            db.SaveChanges();
+            fileUploadBusiness.UploadFile(model);
             return RedirectToAction("Index");
         }
-        public FileContentResult FileDownload(int? id)
+        public FileContentResult FileDownload(int? id, FileUploadBusiness fileUploadBusiness)
         {
-            byte[] fileData;
-            string fileName;
-
-            FileUploadModel fileRecord = db.fileUploadModel.Find(id);
-            fileData = (byte[])fileRecord.File.ToArray();
-            fileName = fileRecord.FileName;
-            return File(fileData, "text", fileName);
+          var file=  fileUploadBusiness.SearchFile(id);
+          return File(fileUploadBusiness.fileData(file), "text", fileUploadBusiness.fileName(file));
         }
     }
 }
